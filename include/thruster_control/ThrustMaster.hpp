@@ -20,11 +20,12 @@ public:
   Thrusters();
   ~Thrusters();
   ros::NodeHandle nh_;
+  ros::NodeHandle nhPriv_;
 
   //i2c interface
   PCA9685* pca9685;
    //thruster config
-  std::unordered_map<std::string, std::vector<short>> thrusterConfig_;
+  std::unordered_map<std::string, int> thrusterConfig_;
   
   
   

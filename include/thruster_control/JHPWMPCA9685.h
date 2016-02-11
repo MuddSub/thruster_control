@@ -45,6 +45,8 @@ public:
     ~PCA9685() ;
     bool openPCA9685() ;
     void closePCA9685();
+    
+    float frequency_;
 
     void reset() ;
 
@@ -55,6 +57,7 @@ public:
     // Channels 0-15
     // Channels are in sets of 4 bytes
     void setPWM ( int channel, int onValue, int offValue);
+    void setPWM ( int channel, int onValue);
 
     void setAllPWM (int onValue, int offValue);
 

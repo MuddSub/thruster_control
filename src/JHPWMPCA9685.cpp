@@ -1,8 +1,10 @@
 #include <thruster_control/JHPWMPCA9685.h>
 #include <math.h>
+#include <iostream>
+
 
  PCA9685::PCA9685(int address) {
-    kI2CBus = 1 ;           // Default I2C bus for Jetson TK1
+    kI2CBus = 0 ;           // Default I2C bus for Jetson TK1
     kI2CAddress = address ; // Defaults to 0x40 for PCA9685 ; jumper settable
     error = 0 ;
 }
@@ -48,6 +50,7 @@ void PCA9685::reset () {
 // Sets the frequency of the PWM signal
 // Frequency is ranged between 40 and 1000 Hertz
 void PCA9685::setPWMFrequency ( float frequency ) {
+	frequency_ = frequency;
     printf("Setting PCA9685 PWM frequency to %f Hz\n",frequency) ;
     float rangedFrequency = fmin(fmax(frequency,40),1000) ;
     int prescale = (int)(25000000.0f / (4096 * rangedFrequency) - 0.5f) ;
@@ -70,6 +73,13 @@ void PCA9685::setPWM ( int channel, int onValue, int offValue) {
     writeByte(PCA9685_LED0_ON_H+4*channel, onValue >> 8) ;
     writeByte(PCA9685_LED0_OFF_L+4*channel, offValue & 0xFF) ;
     writeByte(PCA9685_LED0_OFF_H+4*channel, offValue >> 8) ;
+}
+
+
+void PCA9685::setPWM ( int channel, int onTime) {
+	float period = 1000000/frequency_;
+	float active = onTime * 4095 / period +40;
+	setPWM(channel, 0, active);
 }
 
 void PCA9685::setAllPWM (int onValue, int offValue) {
@@ -100,7 +110,7 @@ int PCA9685::writeByte(int writeRegister, int writeValue)
     // printf("Wrote: 0x%02X to register 0x%02X \n",writeValue, writeRegister) ;
     int toReturn = i2c_smbus_write_byte_data(kI2CFileDescriptor, writeRegister, writeValue);
     if (toReturn < 0) {
-        printf("PCA9685 Write Byte error: %d",errno) ;
+        printf("PCA9685 Write Byte error: %d \n",errno) ;
         error = errno ;
         toReturn = -1 ;
     }
