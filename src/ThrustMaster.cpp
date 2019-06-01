@@ -26,7 +26,7 @@ Thrusters::Thrusters(){
   VFL = &thrusterVals_[2];
   VFR = &thrusterVals_[3];
   HBL = &thrusterVals_[4];
-  VBR = &thrusterVals_[5];
+  HBR = &thrusterVals_[5];
   VBL = &thrusterVals_[6];
   VBR = &thrusterVals_[7];
   
@@ -66,7 +66,7 @@ Thrusters::~Thrusters(){
   configFile << "#Don't edit this file unless you're sure!" << std::endl;
 
   for(auto i : thrusterNames_){
-    configFile << i << ":";
+    configFile << i << ": ";
     configFile << "[" << thrusterConfig_[i][0] << ", ";
     configFile << thrusterConfig_[i][1] << "] \n";
   }
@@ -81,11 +81,11 @@ void Thrusters::move() {
   double swayRotated = 0.7071 * (controlEffortSurge + controlEffortSway);
   double surgeRotated = -0.7071 * (controlEffortSway - controlEffortSurge);
 
+
+  *HBR = surgeRotated + controlEffortYaw;
   *HFL = surgeRotated - controlEffortYaw;
   *HFR = swayRotated + controlEffortYaw;
   *HBL = swayRotated - controlEffortYaw;
-  *HBR = surgeRotated + controlEffortYaw;
-
   *VFL = controlEffortHeave - controlEffortPitch + controlEffortRoll;
   *VFR = controlEffortHeave - controlEffortPitch - controlEffortRoll;
   *VBL = controlEffortHeave + controlEffortPitch + controlEffortRoll;
@@ -192,24 +192,29 @@ int main(int argc, char** argv) {
   #endif
 
   while(ros::ok && thrust->pca9685->error >= 0) {
+
     thrust->move();
 
 	#if DEBUG_THRUST
+  
     // pack the publisher
     thruster_control::Thrust msg;
-    msg.HFL = *thrust->HFL;
-    msg.HFR = *thrust->HFR;
-    msg.VFL = *thrust->VFL;
-    msg.VFR = *thrust->VFR;
-    msg.HBL = *thrust->HBL;
-    msg.HBR = *thrust->HBR;
-    msg.VBL = *thrust->VBL;
-    msg.VBR = *thrust->VBR;
-
+  
+ 
+    msg.HFL = *(thrust->HFL);
+    msg.HFR = *(thrust->HFR);
+    msg.VFL = *(thrust->VFL);
+    msg.VFR = *(thrust->VFR);
+    msg.HBL = *(thrust->HBL);
+    msg.HBR = *(thrust->HBR);
+    msg.VBL = *(thrust->VBL);
+    msg.VBR = *(thrust->VBR);
+    
     // publish the values
     thrust->thrustPub.publish(msg);
     #endif
       
+
 
 	for(auto thruster : thrust->thrusterNames_){
 		std::vector<short> params = thrust->thrusterConfig_[thruster];
@@ -222,5 +227,5 @@ int main(int argc, char** argv) {
     ros::spinOnce();
     loopRate.sleep();
   }
-  
+ 
 }
