@@ -3,8 +3,8 @@ project(thruster_control)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
-add_compile_options(-DDEBUG_THRUST=1)
-add_compile_options(-DTHRUST_CONFIG = 1)
+add_definitions(-DDEBUG_THRUST=1)
+add_definitions(-DTHRUSTER_CONFIG=1)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  roslib
   message_runtime
 )
 
@@ -107,7 +108,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES thruster_control
-#  CATKIN_DEPENDS message_generation roscpp rospy std_msgs
+#  CATKIN_DEPENDS message_generation roscpp rospy std_msgs roslib
 #  DEPENDS system_lib
 )
 

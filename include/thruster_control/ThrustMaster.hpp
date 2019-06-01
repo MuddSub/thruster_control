@@ -9,12 +9,16 @@
 #include <string>
 #include <unordered_map>
 #include <iostream>
+#include <ros/package.h>
+#include <fstream>
+
 
 class Thrusters{
 	
 public:
 
   Thrusters();
+  ~Thrusters();
   ros::NodeHandle nh_;
 
   //i2c interface
@@ -31,17 +35,29 @@ public:
   int getPWM(double);
   int getPWM(std::string);
 
-  
-
-private:
-
-
+  //naming: H/F [Horizontal/Vertical]; F/B [Front/Back]; R/L [Right/Left]
+  double* HFL;
+  double* HFR;
+  double* VFL;
+  double* VFR;
+  double* HBL;
+  double* HBR;
+  double* VBL;
+  double* VBR;
 
 
   // declare the subscribers
   ros::Subscriber surgeSub, swaySub, heaveSub, pitchSub, rollSub, yawSub;
   ros::Publisher thrustPub;
   
+  
+  
+private:
+
+
+
+
+
   
   
   double controlEffortSurge, controlEffortSway, controlEffortHeave,
@@ -59,15 +75,7 @@ private:
   std::vector<double> thrusterVals_;
 
 
-  //naming: H/F [Horizontal/Vertical]; F/B [Front/Back]; R/L [Right/Left]
-  double* HFL;
-  double* HFR;
-  double* VFL;
-  double* VFR;
-  double* HBL;
-  double* HBR;
-  double* VBL;
-  double* VBR;
+
   
 
   

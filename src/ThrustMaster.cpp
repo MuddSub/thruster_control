@@ -54,6 +54,25 @@ Thrusters::Thrusters(){
   }
 }
 
+Thrusters::~Thrusters(){
+  pca9685->closePCA9685();
+  
+  //write to file
+  std::ofstream configFile;
+  std::string filePath = ros::package::getPath("thruster_control") + "/include/mission_control/ThrusterConfig.yaml";
+  configFile.open(filePath);
+
+  configFile << "#Don't edit this file unless you're sure!" << std::endl;
+
+  for(auto i : thrusterNames_){
+    configFile << i << ":" << std::endl;
+    configFile << "[" << thrusterConfig_[i][0] << ", " << thrusterConfig_[i][1] << "] \n";
+  }
+
+  configFile.close();
+
+  
+}
 void Thrusters::move() {
 
   //right-rotate
@@ -137,8 +156,8 @@ int main(int argc, char** argv) {
 		--i;
 		continue;
 	}
-	else if(thrusterConfig_.find(inText) != thrusterConfig_.end()){
-		thrusterConfig_[inText].at(0) = i;
+	else if(thrust.thrusterConfig_.find(inText) != thrust.thrusterConfig_.end()){
+		thrust.thrusterConfig_[inText].at(0) = i;
 	}
 	else{
 		ROS_INFO("Unable to find provided thruster. Please try again");
@@ -146,7 +165,7 @@ int main(int argc, char** argv) {
 		continue;
 	}
 	ROS_INFO("Which way did the thruster spin? 1 = fwd, -1 = bkwd");
-	std::cin >> thrusterConfig_[inText].at(1) = dir;
+	std::cin >> thrust.thrusterConfig_[inText].at(1);
 
   }
   
@@ -170,7 +189,7 @@ int main(int argc, char** argv) {
     msg.VBR = *thrust.VBR;
 
     // publish the values
-    Thrusters::thrustPub.publish(msg);
+    thrust.thrustPub.publish(msg);
     #endif
       
 
@@ -186,6 +205,4 @@ int main(int argc, char** argv) {
     loopRate.sleep();
   }
   
-  
-  thrust.pca9685->closePCA9685();
 }
