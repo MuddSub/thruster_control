@@ -16,7 +16,8 @@
 #include "thruster_control/ThrustMaster.hpp"
 
 Thrusters::Thrusters(){
-	
+  nh_ = ros::NodeHandle();
+
   thrusterNames_  = {"HFL", "HFR", "HBL", "HBR", "VFL", "VFR", "VBL", "VBR"};
   thrusterVals_ = std::vector<double>(8);
   
@@ -134,11 +135,12 @@ int Thrusters::getPWM(std::string thruster){
 int main(int argc, char** argv) {
 
   ros::init(argc, argv, "ThrustMaster");
-  ros::Rate loopRate(10);
   
   Thrusters thrust;
 
-  thrust.nh_ = ros::NodeHandle();
+  ros::Rate loopRate(10);
+  
+  thrust.loadConfig();
 
   #if THRUSTER_CONFIG
   
@@ -169,7 +171,7 @@ int main(int argc, char** argv) {
 
   }
   
-  
+  return 0;
   
   #endif
 

@@ -34,6 +34,7 @@ public:
  
   int getPWM(double);
   int getPWM(std::string);
+  void loadConfig();
 
   //naming: H/F [Horizontal/Vertical]; F/B [Front/Back]; R/L [Right/Left]
   double* HFL;
@@ -79,7 +80,6 @@ private:
   
 
   
-  void loadConfig();
 
   
   
