@@ -8,15 +8,42 @@
 #include "thruster_control/JHPWMPCA9685.h"
 #include <string>
 #include <unordered_map>
+#include <iostream>
+
+class Thrusters{
+	
+public:
+
+  Thrusters();
+  ros::NodeHandle nh_;
+
+  //i2c interface
+  PCA9685* pca9685;
+   //thruster config
+  std::unordered_map<std::string, std::vector<short>> thrusterConfig_;
+  
+  
+  
+  void move();
+  std::vector<std::string> thrusterNames_;
+  
+ 
+  int getPWM(double);
+  int getPWM(std::string);
+
+  
+
+private:
 
 
-namespace Thrusters{
 
-  ros::nodeHandle nh_;
 
   // declare the subscribers
   ros::Subscriber surgeSub, swaySub, heaveSub, pitchSub, rollSub, yawSub;
   ros::Publisher thrustPub;
+  
+  
+  
   double controlEffortSurge, controlEffortSway, controlEffortHeave,
          controlEffortRoll, controlEffortPitch, controlEffortYaw;
 
@@ -29,31 +56,26 @@ namespace Thrusters{
 
 
 
-  std::vector<double> thrusters(8);
+  std::vector<double> thrusterVals_;
 
 
   //naming: H/F [Horizontal/Vertical]; F/B [Front/Back]; R/L [Right/Left]
-  double& HFL = thrusters[0];
-  double& HFR = thrusters[1];
-  double& VFL = thrusters[2];
-  double& VFR = thrusters[3];
-  double& HBL = thrusters[4];
-  double& HBR = thrusters[5];
-  double& VBL = thrusters[6];
-  double& VBR = thrusters[7];
+  double* HFL;
+  double* HFR;
+  double* VFL;
+  double* VFR;
+  double* HBL;
+  double* HBR;
+  double* VBL;
+  double* VBR;
   
+
   
-  //thruster config
-  std::unordered_map<std::string, std::vector<short>> thrusterConfig_;
-  
-  
-  void move();
   void loadConfig();
+
   
   
-  
-  
-}
+};
 
 
 

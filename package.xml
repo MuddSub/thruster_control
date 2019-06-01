@@ -60,7 +60,7 @@
   <exec_depend>rospy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
 
-  <depend> message_runtime </depend>
+  <build_depend> message_runtime </build_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
