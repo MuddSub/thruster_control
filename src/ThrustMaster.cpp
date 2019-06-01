@@ -60,14 +60,15 @@ Thrusters::~Thrusters(){
   
   //write to file
   std::ofstream configFile;
-  std::string filePath = ros::package::getPath("thruster_control") + "/include/mission_control/ThrusterConfig.yaml";
+  std::string filePath = ros::package::getPath("thruster_control") + "/include/thruster_control/ThrusterConfig.yaml";
   configFile.open(filePath);
 
   configFile << "#Don't edit this file unless you're sure!" << std::endl;
 
   for(auto i : thrusterNames_){
-    configFile << i << ":" << std::endl;
-    configFile << "[" << thrusterConfig_[i][0] << ", " << thrusterConfig_[i][1] << "] \n";
+    configFile << i << ":";
+    configFile << "[" << thrusterConfig_[i][0] << ", ";
+    configFile << thrusterConfig_[i][1] << "] \n";
   }
 
   configFile.close();
@@ -105,12 +106,26 @@ void Thrusters::loadConfig(){
 	
 	std::vector<double> params;
 	std::vector<short> paramsShort;
-	for(auto thruster : thrusterNames_){
+	for(std::vector<std::string>::iterator it = thrusterNames_.begin(); it != thrusterNames_.end(); ++it){
 		//params = [thruster number, sign (fwd/bkwd)
-		nh_.getParam(thruster, params);
-		paramsShort[0] = (short)params[0];
-		paramsShort[1] = (short)params[1];
-		thrusterConfig_[thruster] = paramsShort;
+		nh_.getParam(*it, params);
+	
+		//if the thruster has already been included
+		if(thrusterConfig_.find(*it) != thrusterConfig_.end()){
+			ROS_WARN("Thruster %s has already been inserted", (*it).c_str());
+			ROS_WARN("Please try again");
+			--it;
+			continue;
+		}
+	
+		paramsShort.push_back((short)params[0]);
+		paramsShort.push_back((short)params[1]);
+		
+		
+		std::pair<std::string, std::vector<short>> configPair(*it, paramsShort);
+		thrusterConfig_.insert(configPair);
+		
+		
 	}
 }
 
@@ -136,30 +151,31 @@ int main(int argc, char** argv) {
 
   ros::init(argc, argv, "ThrustMaster");
   
-  Thrusters thrust;
+  Thrusters* thrust = new Thrusters();
 
   ros::Rate loopRate(10);
   
-  thrust.loadConfig();
+  thrust->loadConfig();
 
   #if THRUSTER_CONFIG
   
   for(int i = 0; i < 8; ++i){
 	ROS_INFO("Running thruster %d", i);
-	thrust.pca9685->setPWM(i, 0, 1600);
+	thrust->pca9685->setPWM(i, 0, 1600);
 	ros::Duration(0.5).sleep();	  
-  	thrust.pca9685->setPWM(i, 0, 0);
+  	thrust->pca9685->setPWM(i, 0, 0);
 	ROS_INFO("Enter thruster, or \"r\" to run again");
 	
 	std::string inText;
 	std::cin >> inText;
-	
+	ROS_WARN(inText.c_str());
+
 	if(inText == "r"){
 		--i;
 		continue;
 	}
-	else if(thrust.thrusterConfig_.find(inText) != thrust.thrusterConfig_.end()){
-		thrust.thrusterConfig_[inText].at(0) = i;
+	else if(thrust->thrusterConfig_.find(inText) != thrust->thrusterConfig_.end()){
+		thrust->thrusterConfig_[inText].at(0) = i;
 	}
 	else{
 		ROS_INFO("Unable to find provided thruster. Please try again");
@@ -167,40 +183,40 @@ int main(int argc, char** argv) {
 		continue;
 	}
 	ROS_INFO("Which way did the thruster spin? 1 = fwd, -1 = bkwd");
-	std::cin >> thrust.thrusterConfig_[inText].at(1);
+	std::cin >> thrust->thrusterConfig_[inText].at(1);
 
   }
-  
+  delete thrust;
   return 0;
   
   #endif
 
-  while(ros::ok && thrust.pca9685->error >= 0) {
-    thrust.move();
+  while(ros::ok && thrust->pca9685->error >= 0) {
+    thrust->move();
 
 	#if DEBUG_THRUST
     // pack the publisher
     thruster_control::Thrust msg;
-    msg.HFL = *thrust.HFL;
-    msg.HFR = *thrust.HFR;
-    msg.VFL = *thrust.VFL;
-    msg.VFR = *thrust.VFR;
-    msg.HBL = *thrust.HBL;
-    msg.HBR = *thrust.HBR;
-    msg.VBL = *thrust.VBL;
-    msg.VBR = *thrust.VBR;
+    msg.HFL = *thrust->HFL;
+    msg.HFR = *thrust->HFR;
+    msg.VFL = *thrust->VFL;
+    msg.VFR = *thrust->VFR;
+    msg.HBL = *thrust->HBL;
+    msg.HBR = *thrust->HBR;
+    msg.VBL = *thrust->VBL;
+    msg.VBR = *thrust->VBR;
 
     // publish the values
-    thrust.thrustPub.publish(msg);
+    thrust->thrustPub.publish(msg);
     #endif
       
 
-	for(auto thruster : thrust.thrusterNames_){
-		std::vector<short> params = thrust.thrusterConfig_[thruster];
+	for(auto thruster : thrust->thrusterNames_){
+		std::vector<short> params = thrust->thrusterConfig_[thruster];
 		//write to i2c. says write to the correct thruster number (given
 		//by params.at(0) with an off-value of 0, and an on value of
 		//the mapped PWM value multiplied by params.at(1) which is +/- 1
-		thrust.pca9685->setPWM(params.at(0), 0, params.at(1) * thrust.getPWM(thruster));
+		thrust->pca9685->setPWM(params.at(0), 0, params.at(1) * thrust->getPWM(thruster));
 	}
 
     ros::spinOnce();
