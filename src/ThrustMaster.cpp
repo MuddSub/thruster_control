@@ -64,6 +64,10 @@ Thrusters::Thrusters(){
 }
 
 Thrusters::~Thrusters(){
+
+  for(int i = 1; i <= 8; ++i)
+    this->pca9685->setPWM(i, 1500);
+
   pca9685->closePCA9685();
   
   //write to file
@@ -131,7 +135,7 @@ void Thrusters::loadConfig(){
 		std::pair<std::string, int> configPair(*it, param);
 		thrusterConfig_.insert(configPair);
                 
-                ROS_WARN("OUT %d", thrusterConfig_[*it]);
+              ROS_WARN("OUT %d", thrusterConfig_[*it]);
 		
 		
 	}
@@ -159,8 +163,7 @@ int Thrusters::getPWM(std::string thruster){
 int main(int argc, char** argv) {
 
   ros::init(argc, argv, "ThrustMaster");
-  
-  Thrusters* thrust = new Thrusters();
+    Thrusters* thrust = new Thrusters();
 
   ros::Rate loopRate(10);
  
