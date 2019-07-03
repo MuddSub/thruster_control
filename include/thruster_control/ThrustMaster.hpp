@@ -4,6 +4,7 @@
 #include <ros/ros.h>
 #include <vector>
 #include <std_msgs/Float64.h>
+#include <std_msgs/Bool.h>
 #include "thruster_control/Thrust.h"
 #include "thruster_control/JHPWMPCA9685.h"
 #include <string>
@@ -43,7 +44,7 @@ public:
 
   // declare the subscribers
   ros::Subscriber surgeSub, swaySub, heaveSub, pitchSub, rollSub, yawSub, enableSub;
-  ros::Publisher thrustPub;
+  ros::Publisher thrustPub, flushPub;
 
 
 
@@ -67,7 +68,13 @@ private:
   inline void pitchCallback(const std_msgs::Float64& msg){ controlEffortPitch = msg.data;}
   inline void rollCallback(const std_msgs::Float64& msg){ controlEffortRoll = msg.data;}
   inline void yawCallback(const std_msgs::Float64& msg){ controlEffortYaw = msg.data;}
-	inline void enableCallback(const std_msgs::Bool& msg){enable = msg.data;}
+  inline void enableCallback(const std_msgs::Bool& msg){
+	ROS_INFO("HERE");
+        enable = msg.data;
+	std_msgs::Bool flush;
+	flush.data = true;
+	flushPub.publish(flush);
+  }
 
 
   std::vector<double> thrusterVals_;

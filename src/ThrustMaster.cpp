@@ -34,6 +34,7 @@ Thrusters::Thrusters(){
 
 	  // declare the publisher
   thrustPub = nh_.advertise<thruster_control::Thrust>("thrusterValues", 1);
+  flushPub = nh_.advertise<std_msgs::Bool>("flushPID", 1);
 
   surgeSub = nh_.subscribe("surgeControlEffort", 0, &Thrusters::surgeCallback, this);
   swaySub = nh_.subscribe("swayControlEffort", 0, &Thrusters::swayCallback, this);
@@ -97,11 +98,13 @@ void Thrusters::move() {
   double swayRotated = 0.7071 * (controlEffortSurge + controlEffortSway);
   double surgeRotated = -0.7071 * (controlEffortSway - controlEffortSurge);
 
+  if(controlEffortYaw > 0.12) controlEffortYaw = 0.12;
+  else if (controlEffortYaw < -0.12) controlEffortYaw = -0.12;
 
-  *HBR = surgeRotated + controlEffortYaw;
+  *HBR = -1 * (surgeRotated + controlEffortYaw);
   *HFL = surgeRotated - controlEffortYaw;
   *HFR = swayRotated + controlEffortYaw;
-  *HBL = swayRotated - controlEffortYaw;
+  *HBL = -1 * (swayRotated - controlEffortYaw);
   *VFL = controlEffortHeave - controlEffortPitch + controlEffortRoll;
   *VFR = controlEffortHeave - controlEffortPitch - controlEffortRoll;
   *VBL = controlEffortHeave + controlEffortPitch + controlEffortRoll;
@@ -115,7 +118,7 @@ void Thrusters::move() {
   }
   if(fabs(max) > maxThrust){
     double factor = fabs(maxThrust / max);
-    ROS_INFO("FACTOR %f", factor);
+    //ROS_INFO("FACTOR %f", factor);
     for (auto it = thrusterVals_.begin(); it != thrusterVals_.end(); ++it){
       (*it) *= factor;
     }
@@ -126,7 +129,7 @@ void Thrusters::move() {
 
   //experimentally found deadband
   for (auto it = thrusterVals_.begin(); it != thrusterVals_.end(); ++it)
-    if(fabs(*it) < 0.07) *it = 0;
+    if(fabs(*it) < 0.01) *it = 0;
 
 }
 
@@ -157,11 +160,24 @@ void Thrusters::loadConfig(){
 }
 
 int Thrusters::getPWM(double percentThrust){
-	//scales the -1 -> 1 thruster value to 1100->1900
-  float pwm =  (percentThrust * 400) + 1500;
-  if(pwm > 1900) pwm = 1900;
-  else if(pwm < 1100) pwm = 1100;
+  //scales the -1 -> 1 thruster value to 1100->1900 (1500 is stopped)
+  float pwm;
+  if(fabs(percentThrust) < 0.01){
+	  pwm = 1500;
+  }
+  else{
+	//we found in testing that the thrusters had a bit of a deadband
+	//this is to account for that
+	if(percentThrust > 0) percentThrust += 0.08;
+	else percentThrust -= 0.01;
+
+	pwm =  (percentThrust * 400) + 1500;
+	if(pwm > 1900) pwm = 1900;
+	else if(pwm < 1100) pwm = 1100;
+  }
+  // return pwm;
   return enable? pwm: 1500;
+
 }
 
 int Thrusters::getPWM(std::string thruster){
@@ -192,6 +208,30 @@ int main(int argc, char** argv) {
 	for(auto thruster : thrust->thrusterNames_)
 			  ROS_INFO("Thruster %d", thrust->thrusterConfig_[thruster]);
 
+
+
+// while(ros::ok){
+//
+// 	thruster_control::Thrust msg;
+//
+// 	ROS_INFO("Enter thruster");
+// 	std::string thrusterIn;
+// 	std::cin >> thrusterIn;
+// 	ROS_INFO("Enter thrust (0->1)");
+// 	double effort;
+// 	std::cin >> effort;
+//
+// 	int thrusterNum = thrust->thrusterConfig_[thrusterIn];
+// 	ROS_INFO("THRUSTER_NUM %d, PWM %d", thrusterNum, thrust->getPWM(effort));
+//
+// 	thrust->pca9685->setPWM(thrusterNum,  thrust->getPWM(effort));
+//
+// 	ros::Duration(2).sleep();
+//
+// 	thrust->pca9685->setPWM(thrusterNum, 1500);
+//
+//
+// }
 
 
 /*
@@ -246,6 +286,7 @@ int main(int argc, char** argv) {
 	  ROS_INFO("Was this right? Enter 1 to repeat");
 	  std::cin >> notDone;
 
+	
 	}
 
 

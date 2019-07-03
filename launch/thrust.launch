@@ -2,7 +2,7 @@
 
   <rosparam file="$(find thruster_control)/include/thruster_control/ThrusterConfig.yaml" />
 
-  <param name="MAX_THRUST" type="double" value="0.6" />
+  <param name="MAX_THRUST" type="double" value="0.25" />
   <node name="thrustmaster" pkg="thruster_control" type="thrust_master" output="screen" />
 
 
