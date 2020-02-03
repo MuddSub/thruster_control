@@ -5,7 +5,6 @@
 #include <vector>
 #include <std_msgs/Float64.h>
 #include "thruster_control/Thrust.h"
-#include "thruster_control/JHPWMPCA9685.h"
 #include <string>
 #include <unordered_map>
 #include <iostream>
@@ -14,7 +13,7 @@
 
 
 class Thrusters{
-	
+
 public:
 
   Thrusters();
@@ -22,17 +21,15 @@ public:
   ros::NodeHandle nh_;
   ros::NodeHandle nhPriv_;
 
-  //i2c interface
-  PCA9685* pca9685;
    //thruster config
   std::unordered_map<std::string, int> thrusterConfig_;
-  
-  
-  
+
+
+
   void move();
   std::vector<std::string> thrusterNames_;
-  
- 
+
+
   int getPWM(double);
   int getPWM(std::string);
   void loadConfig();
@@ -51,17 +48,17 @@ public:
   // declare the subscribers
   ros::Subscriber surgeSub, swaySub, heaveSub, pitchSub, rollSub, yawSub;
   ros::Publisher thrustPub;
-  
-  
-  
+
+
+
 private:
 
 
 
 
 
-  
-  
+
+
   double controlEffortSurge, controlEffortSway, controlEffortHeave,
          controlEffortRoll, controlEffortPitch, controlEffortYaw;
 
@@ -78,12 +75,12 @@ private:
 
 
 
-  
 
-  
 
-  
-  
+
+
+
+
 };
 
 

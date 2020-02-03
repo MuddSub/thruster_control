@@ -202,7 +202,7 @@ include_directories(
 # catkin_add_nosetests(test)
 
 
-add_executable(thrust_master src/ThrustMaster.cpp src/JHPWMPCA9685.cpp)
+add_executable(thrust_master src/ThrustMaster.cpp)
 target_link_libraries(thrust_master ${catkin_LIBRARIES})
 add_dependencies(thrust_master
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
